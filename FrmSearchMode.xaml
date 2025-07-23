@@ -22,10 +22,12 @@
                     <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0">
                         <RadioButton Content="Alpha-Beta" Height="16" Name="radioButtonAlphaBeta" Margin="5" ToolTip="Alpha-Beta Pruning: Faster version of minimax" />
                         <RadioButton Content="MinMax" Height="16" Name="radioButtonMinMax" Margin="5" ToolTip="Slower than Alpha-Beta. Used mainly for diagnostics." />
-                        <StackPanel Orientation="Horizontal" Margin="10,0">
-                            <TextBlock Text="Quality " HorizontalAlignment="Left"/>
-                            <TextBox x:Name="humanFactor" Text="0" Width="40" TextChanged="humanFactor_TextChanged" HorizontalAlignment="Right"></TextBox>
+                        <StackPanel Orientation="Horizontal" Margin="5,0">
+                            <TextBlock Text="Human factor " HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center" IsEnabled="{Binding ElementName=checkBoxHumanFactor,Path=IsChecked}"/>
+                            <TextBox x:Name="humanFactor" Text="0" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center" Width="23"  TextChanged="humanFactor_TextChanged" IsEnabled="{Binding ElementName=checkBoxHumanFactor,Path=IsChecked}"></TextBox>
                         </StackPanel>
+                        <CheckBox Content="Extended evaluation" Height="16" Name="checkBoxExtended" Margin="5,0" ToolTip="Can slow down search a little by evaluating all posible captures. Fixes bug when computer gives queen for free." Checked="checkBoxExtended_Checked" />
+                        <CheckBox Content="Enable human factor" Height="16" Name="checkBoxHumanFactor" Margin="5,0" ToolTip="Erase moves that normal human player will not notice. Human factor specificies percent of total moves to remove" />
                     </StackPanel>
                     <GroupBox Header="Book Opening">
                         <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0">

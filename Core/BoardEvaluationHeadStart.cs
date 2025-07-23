@@ -7,21 +7,26 @@ using System.Threading.Tasks;
 
 namespace SrcChess2.Core
 {
-    public class BoardEvaluationExpensive : IBoardEvaluation
+    public class BoardEvaluationHeadStart : IBoardEvaluation
     {
 
         /// <summary>
         /// Class constructor
         /// </summary>
-        public BoardEvaluationExpensive() { }
+        public BoardEvaluationHeadStart() { }
 
         /// <summary>Value of each piece/color.</summary>
         static private int[] PiecesPoint { get; }
 
         /// <summary>
+        /// Value of point for each piece
+        /// </summary>
+        static private int[] PiecesMobilityPoint { get; }
+
+        /// <summary>
         /// Static constructor
         /// </summary>
-        static BoardEvaluationExpensive()
+        static BoardEvaluationHeadStart()
         {
             PiecesPoint = new int[16];
             PiecesPoint[(int)ChessBoard.PieceType.Pawn] = 100;
@@ -36,12 +41,25 @@ namespace SrcChess2.Core
             PiecesPoint[(int)(ChessBoard.PieceType.Bishop | ChessBoard.PieceType.Black)] = -325;
             PiecesPoint[(int)(ChessBoard.PieceType.Queen | ChessBoard.PieceType.Black)] = -950;
             PiecesPoint[(int)(ChessBoard.PieceType.King | ChessBoard.PieceType.Black)] = -1000000;
+            PiecesMobilityPoint = new int[16];
+            PiecesMobilityPoint[(int)ChessBoard.PieceType.Pawn] = 1;
+            PiecesMobilityPoint[(int)ChessBoard.PieceType.Rook] = 3;
+            PiecesMobilityPoint[(int)ChessBoard.PieceType.Knight] = 8;
+            PiecesMobilityPoint[(int)ChessBoard.PieceType.Bishop] = 5;
+            PiecesMobilityPoint[(int)ChessBoard.PieceType.Queen] = 3;
+            PiecesMobilityPoint[(int)ChessBoard.PieceType.King] = 0;
+            PiecesMobilityPoint[(int)(ChessBoard.PieceType.Pawn | ChessBoard.PieceType.Black)] = -1;
+            PiecesMobilityPoint[(int)(ChessBoard.PieceType.Rook | ChessBoard.PieceType.Black)] = -3;
+            PiecesMobilityPoint[(int)(ChessBoard.PieceType.Knight | ChessBoard.PieceType.Black)] = -8;
+            PiecesMobilityPoint[(int)(ChessBoard.PieceType.Bishop | ChessBoard.PieceType.Black)] = -5;
+            PiecesMobilityPoint[(int)(ChessBoard.PieceType.Queen | ChessBoard.PieceType.Black)] = -3;
+            PiecesMobilityPoint[(int)(ChessBoard.PieceType.King | ChessBoard.PieceType.Black)] = 0;
         }
 
         /// <summary>
         /// Name of the evaluation method
         /// </summary>
-        public string Name => "Pawn-Attack Version";
+        public string Name => "Head start attack Version";
 
         /// <summary>
         /// Evaluates a board. The number of point is greater than 0 if white is in advantage, less than 0 if black is.
@@ -74,11 +92,11 @@ namespace SrcChess2.Core
             }
             if (board[12] == ChessBoard.PieceType.Pawn)
             {
-                retVal -= 4;
+                retVal -= 34;
             }
             if (board[52] == (ChessBoard.PieceType.Pawn | ChessBoard.PieceType.Black))
             {
-                retVal += 4;
+                retVal += 34;
             }
             if (whiteCastle)
             {
@@ -143,6 +161,11 @@ namespace SrcChess2.Core
                 }
             }
 
+            for (int i = 0; i < countPerPiece.Length; i++)
+            {
+                retVal += PiecesMobilityPoint[i] * attackPosInfo.PiecesMobility[i];
+            }
+
             for (int i = 0; i < 8; i++)
             {
                 retVal -= 13 * pawnCount[i, 0] * (pawnCount[i, 0] - 1);
@@ -192,6 +215,23 @@ namespace SrcChess2.Core
                 }
             }
 
+            void CheckFigure(int pos)
+            {
+                ChessBoard.PieceType piece = board[pos] & ChessBoard.PieceType.PieceMask;
+                if (piece == ChessBoard.PieceType.Bishop || piece == ChessBoard.PieceType.Knight)
+                {
+                    if (board[pos].HasFlag(ChessBoard.PieceType.Black))
+                        retVal += 47;
+                    else
+                        retVal -= 47;
+                }
+            }
+            for (int i = 0; i < 8; i++)
+            {
+                CheckFigure(i);
+                CheckFigure(56 + i);
+            }
+
             for (int i = 1; i < 7; i++)
             {
                 if (pawnCount[i,0] > 0 && pawnCount[i,1]==0 && pawnCount[i-1,1]==0 && pawnCount[i+1,1]==0)
@@ -218,8 +258,31 @@ namespace SrcChess2.Core
                 }
             }
 
-            retVal -= attackPosInfo.PiecesMobility[(int)ChessBoard.PieceType.Pawn];
-            retVal += attackPosInfo.PiecesMobility[(int)(ChessBoard.PieceType.Pawn | ChessBoard.PieceType.Black)];
+            if (retVal < 0)
+            {
+                retVal -= 120;
+                for (int i = 0; i < 64; i++)
+                {
+                    if (!board[i].HasFlag(ChessBoard.PieceType.Black))
+                    {
+                        retVal += 10;
+                    }
+                }
+            }
+            else if (retVal > 0)
+            {
+                retVal += 90 * 12;
+                for (int i = 0; i < 64; i++)
+                {
+                    if (board[i].HasFlag(ChessBoard.PieceType.Black))
+                    {
+                        retVal -= 90;
+                    }
+                }
+            }
+
+            //retVal -= attackPosInfo.PiecesMobility[(int)ChessBoard.PieceType.Pawn];
+            //retVal += attackPosInfo.PiecesMobility[(int)(ChessBoard.PieceType.Pawn | ChessBoard.PieceType.Black)];
 
             return retVal;
         }

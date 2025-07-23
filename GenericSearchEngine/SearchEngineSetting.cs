@@ -37,7 +37,7 @@ namespace GenericSearchEngine {
         /// <summary>
         /// Ctor
         /// </summary>
-        public SearchEngineSetting() : this(SearchOption.UseAlphaBeta, ThreadingMode.OnePerProcessorForSearch, searchDepth: 2, timeOutInSec: 0, RandomMode.On, transTableEntryCount: 1000000, humanFactor: 0) { }
+        public SearchEngineSetting() : this(SearchOption.UseAlphaBeta | SearchOption.UseExtendedEvaluation, ThreadingMode.OnePerProcessorForSearch, searchDepth: 2, timeOutInSec: 0, RandomMode.On, transTableEntryCount: 1000000, humanFactor: 0) { }
 
         /// <summary>
         /// Clone the object
@@ -140,6 +140,7 @@ namespace GenericSearchEngine {
                 processorCount = (processorCount >= 2) ? 2 : 1;
                 break;
             default:
+                processorCount = 1;
                 break;
             }
             s = (processorCount == 1) ? "" : "s";

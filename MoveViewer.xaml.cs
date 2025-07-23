@@ -286,31 +286,31 @@ namespace SrcChess2 {
         /// <param name="sender"> Sender object</param>
         /// <param name="e">      Event arguments</param>
         private void ListViewMoveList_SelectionChanged(object? sender, SelectionChangedEventArgs e) {
-            NewMoveSelectedEventArg evArg;
-            int                     curPos;
-            int                     newPos;
-            ChessBoard              chessBoard;
+            //NewMoveSelectedEventArg evArg;
+            //int                     curPos;
+            //int                     newPos;
+            //ChessBoard              chessBoard;
             
-            if (!m_ignoreChg && !m_chessCtl!.IsBusy && !ChessBoardControl.IsSearchEngineBusy) {
-                m_ignoreChg = true;
-                chessBoard  = m_chessCtl!.Board;
-                curPos      = chessBoard.MovePosStack.PositionInList;
-                if (e.AddedItems.Count != 0) {
-                    newPos = listViewMoveList.SelectedIndex;
-                    if (newPos != curPos) {
-                        evArg = new NewMoveSelectedEventArg(newPos);
-                        OnNewMoveSelected(evArg);
-                        if (evArg.Cancel) {
-                            if (curPos == -1) {
-                                listViewMoveList.SelectedItems.Clear();
-                            } else {
-                                listViewMoveList.SelectedIndex  = curPos;
-                            }
-                        }
-                    }
-                }
-                m_ignoreChg = false;
-            }
+            //if (!m_ignoreChg && !m_chessCtl!.IsBusy && !ChessBoardControl.IsSearchEngineBusy) {
+            //    m_ignoreChg = true;
+            //    chessBoard  = m_chessCtl!.Board;
+            //    curPos      = chessBoard.MovePosStack.PositionInList;
+            //    if (e.AddedItems.Count != 0) {
+            //        newPos = listViewMoveList.SelectedIndex;
+            //        if (newPos != curPos) {
+            //            evArg = new NewMoveSelectedEventArg(newPos);
+            //            OnNewMoveSelected(evArg);
+            //            if (evArg.Cancel) {
+            //                if (curPos == -1) {
+            //                    listViewMoveList.SelectedItems.Clear();
+            //                } else {
+            //                    listViewMoveList.SelectedIndex  = curPos;
+            //                }
+            //            }
+            //        }
+            //    }
+            //    m_ignoreChg = false;
+            //}
         }
     } // Class MoveViewer
 } // Namespace

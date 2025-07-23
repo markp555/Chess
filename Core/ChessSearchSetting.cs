@@ -244,9 +244,13 @@ namespace SrcChess2.Core {
             ThreadingMode      threadingMode;
             int                timeOutInSec;
 
-            searchOption  = SearchOption.UseAlphaBeta | SearchOption.UseIterativeDepthSearch | SearchOption.UseTransTable;
+            searchOption  = SearchOption.UseAlphaBeta | SearchOption.UseIterativeDepthSearch | SearchOption.UseTransTable | SearchOption.UseExtendedEvaluation | SearchOption.UseHumanFactor;
             threadingMode = ThreadingMode.OnePerProcessorForSearch;
-            timeOutInSec  = 0;
+            timeOutInSec  = difficultyLevel switch
+            {
+                SettingDifficultyLevel.VeryHard => 15,
+                _                               => 0
+            };
             retVal        = difficultyLevel switch {
                 SettingDifficultyLevel.VeryEasy     => new ChessSearchSetting(new SearchEngineSetting(searchOption, threadingMode, searchDepth: 2, timeOutInSec, RandomMode.On, TransTableEntryCount, 50),
                                                                               new BoardEvaluationWeak(),
@@ -259,18 +263,18 @@ namespace SrcChess2.Core {
                                                                               BookModeSetting.NoBook,
                                                                               SettingDifficultyLevel.Easy),
                 SettingDifficultyLevel.Intermediate => new ChessSearchSetting(new SearchEngineSetting(searchOption, threadingMode, searchDepth: 4, timeOutInSec, RandomMode.On, TransTableEntryCount, 15),
-                                                                              new BoardEvaluationBasic(),
-                                                                              new BoardEvaluationBasic(),
+                                                                              new BoardEvaluationExpensive(),
+                                                                              new BoardEvaluationExpensive(),
                                                                               BookModeSetting.Unrated,
                                                                               SettingDifficultyLevel.Intermediate),
-                SettingDifficultyLevel.Hard         => new ChessSearchSetting(new SearchEngineSetting(searchOption, threadingMode, searchDepth: 4, timeOutInSec, RandomMode.On, TransTableEntryCount, 10),
-                                                                              new BoardEvaluationBasic(),
-                                                                              new BoardEvaluationBasic(),
+                SettingDifficultyLevel.Hard         => new ChessSearchSetting(new SearchEngineSetting(searchOption, threadingMode, searchDepth: 6, timeOutInSec, RandomMode.On, TransTableEntryCount, 10),
+                                                                              new BoardEvaluationExpensive(),
+                                                                              new BoardEvaluationExpensive(),
                                                                               BookModeSetting.ELOGT2500,
                                                                               SettingDifficultyLevel.Hard),
-                SettingDifficultyLevel.VeryHard     => new ChessSearchSetting(new SearchEngineSetting(searchOption, threadingMode, searchDepth: 6, timeOutInSec, RandomMode.On, TransTableEntryCount, 0),
-                                                                              WhiteBoardEvaluator ?? new BoardEvaluationBasic(),
-                                                                              BlackBoardEvaluator ?? new BoardEvaluationBasic(),
+                SettingDifficultyLevel.VeryHard     => new ChessSearchSetting(new SearchEngineSetting(searchOption, threadingMode, searchDepth: 10, timeOutInSec, RandomMode.On, TransTableEntryCount, 0),
+                                                                              WhiteBoardEvaluator ?? new BoardEvaluationTest(),
+                                                                              BlackBoardEvaluator ?? new BoardEvaluationTest(),
                                                                               BookModeSetting.ELOGT2500,
                                                                               SettingDifficultyLevel.VeryHard),
                 _                                   => this,

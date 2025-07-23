@@ -355,6 +355,7 @@
         <Label Name="labelBlackPlayerName" Margin="0" Padding="0" VerticalAlignment="Center">:</Label>
         <Label Name="labelBlackPlayTime" VerticalAlignment="Center">00:00:00</Label>
         <Label Name="labelBlackLimitPlayTime" VerticalAlignment="Center"></Label>
-        <Label Name="labelEvaluationResult" VerticalAlignment="Center" HorizontalAlignment="Right"></Label>
+        <Label Name="labelEvaluationResult" Margin="10,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right"></Label>
+        <Label Name="labelEngineResult" Margin="10,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right"></Label>
     </ToolBar>
 </UserControl>

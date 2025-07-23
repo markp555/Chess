@@ -38,12 +38,12 @@ namespace GenericSearchEngine {
             PiecesPoint[(int)ChessBoard.PieceType.Bishop] = 325;
             PiecesPoint[(int)ChessBoard.PieceType.Queen] = 900;
             PiecesPoint[(int)ChessBoard.PieceType.King] = 1000000;
-            PiecesPoint[(int)(ChessBoard.PieceType.Pawn | ChessBoard.PieceType.Black)] = -100;
-            PiecesPoint[(int)(ChessBoard.PieceType.Rook | ChessBoard.PieceType.Black)] = -500;
-            PiecesPoint[(int)(ChessBoard.PieceType.Knight | ChessBoard.PieceType.Black)] = -300;
-            PiecesPoint[(int)(ChessBoard.PieceType.Bishop | ChessBoard.PieceType.Black)] = -325;
-            PiecesPoint[(int)(ChessBoard.PieceType.Queen | ChessBoard.PieceType.Black)] = -900;
-            PiecesPoint[(int)(ChessBoard.PieceType.King | ChessBoard.PieceType.Black)] = -1000000;
+            PiecesPoint[(int)(ChessBoard.PieceType.Pawn | ChessBoard.PieceType.Black)] = 100;
+            PiecesPoint[(int)(ChessBoard.PieceType.Rook | ChessBoard.PieceType.Black)] = 500;
+            PiecesPoint[(int)(ChessBoard.PieceType.Knight | ChessBoard.PieceType.Black)] = 300;
+            PiecesPoint[(int)(ChessBoard.PieceType.Bishop | ChessBoard.PieceType.Black)] = 325;
+            PiecesPoint[(int)(ChessBoard.PieceType.Queen | ChessBoard.PieceType.Black)] = 900;
+            PiecesPoint[(int)(ChessBoard.PieceType.King | ChessBoard.PieceType.Black)] = 1000000;
         }
 
         /// <summay>
@@ -85,60 +85,95 @@ namespace GenericSearchEngine {
             minMaxInfo.HasTimedOut = DateTime.Now >= minMaxInfo.TimeOut;
             isFullyEvaluated       = true;
 
-            
+            int[] eatBalance = board.CalculateAttackMap();
 
             moveList.Sort((TMove a, TMove b) => {
                 if (a is not Move am || b is not Move bm || board is not ChessGameBoardAdaptor brd || PiecesPoint == null)
                     return 0;
-
-                if ((am.OriginalPiece == ChessBoard.PieceType.None) != (bm.OriginalPiece == ChessBoard.PieceType.None))
+                int w1 = am.OriginalPiece == ChessBoard.PieceType.None ? 0 : PiecesPoint[(int)am.OriginalPiece];
+                int w2 = bm.OriginalPiece == ChessBoard.PieceType.None ? 0 : PiecesPoint[(int)bm.OriginalPiece];
+                if (eatBalance[am.StartPos] < 0) // this piece can be eaten
                 {
-                    if (am.OriginalPiece == ChessBoard.PieceType.None)
-                        return 1;
-                    return -1;
+                    w2 -= PiecesPoint[(int)brd.ChessBoard[am.StartPos]];
                 }
-                if (am.OriginalPiece != ChessBoard.PieceType.None && bm.OriginalPiece != ChessBoard.PieceType.None)
+                if (eatBalance[bm.StartPos] < 0)
                 {
-                    int w1 = PiecesPoint[(int)am.OriginalPiece] - PiecesPoint[(int)brd.ChessBoard[(int)am.StartPos]];
-                    int w2 = PiecesPoint[(int)bm.OriginalPiece] - PiecesPoint[(int)brd.ChessBoard[(int)bm.StartPos]];
+                    w1 -= PiecesPoint[(int)brd.ChessBoard[bm.StartPos]];
+                }
+                if (eatBalance[am.EndPos] <= 0)
+                {
+                    w1 -= PiecesPoint[(int)brd.ChessBoard[am.StartPos]];
+                }
+                if (eatBalance[bm.EndPos] <= 0)
+                {
+                    w2 -= PiecesPoint[(int)brd.ChessBoard[bm.StartPos]];
+                }
+                // if it is better to make second move (by take)
+                if (w1 != w2)
+                {
                     return w2 - w1;
                 }
-                bool ap = (brd.ChessBoard[am.StartPos] & ChessBoard.PieceType.PieceMask) == ChessBoard.PieceType.Pawn;
-                bool bp = (brd.ChessBoard[bm.StartPos] & ChessBoard.PieceType.PieceMask) == ChessBoard.PieceType.Pawn;
-                ChessBoard.PieceType enemyPawn = ChessBoard.PieceType.Pawn | (brd.ChessBoard[am.StartPos] ^ (brd.ChessBoard[am.StartPos] & ChessBoard.PieceType.PieceMask) ^ ChessBoard.PieceType.Black);
-                bool aeaten = brd.ChessBoard.CheckIsPiece(am.StartPos + 7, enemyPawn) ||
-                brd.ChessBoard.CheckIsPiece(am.StartPos + 9, enemyPawn) ||
-                brd.ChessBoard.CheckIsPiece(am.StartPos - 7, enemyPawn) ||
-                brd.ChessBoard.CheckIsPiece(am.StartPos - 9, enemyPawn);
-                bool beaten = brd.ChessBoard.CheckIsPiece(bm.StartPos + 7, enemyPawn) ||
-                brd.ChessBoard.CheckIsPiece(bm.StartPos + 9, enemyPawn) ||
-                brd.ChessBoard.CheckIsPiece(bm.StartPos - 7, enemyPawn) ||
-                brd.ChessBoard.CheckIsPiece(bm.StartPos - 9, enemyPawn);
-                if (ap && bp)
-                    return 0;
-                if (ap)
-                    return -1;
-                if (bp)
-                    return 1;
-                if (aeaten && beaten)
-                    return 0;
-                if (aeaten)
-                    return 1;
-                if (beaten)
-                    return -1;
-                //if (brd.ChessBoard.IsCheck)
-                return 0;
+                int prob1 = eatBalance[am.EndPos];
+                int prob2 = eatBalance[bm.EndPos];
+                //if (!maximizing)
+                //{
+                //    prob1 *= -1;
+                //    prob2 *= -1;
+                //}
+                return prob2 - prob1;
+                //if ((am.OriginalPiece == ChessBoard.PieceType.None) != (bm.OriginalPiece == ChessBoard.PieceType.None))
+                //{
+                //    if (am.OriginalPiece == ChessBoard.PieceType.None)
+                //        return 1;
+                //    return -1;
+                //}
+                //if (am.OriginalPiece != ChessBoard.PieceType.None && bm.OriginalPiece != ChessBoard.PieceType.None)
+                //{
+                //    int w1 = PiecesPoint[(int)am.OriginalPiece] - PiecesPoint[(int)brd.ChessBoard[(int)am.StartPos]];
+                //    int w2 = PiecesPoint[(int)bm.OriginalPiece] - PiecesPoint[(int)brd.ChessBoard[(int)bm.StartPos]];
+                //    return w2 - w1;
+                //}
+                //bool ap = (brd.ChessBoard[am.StartPos] & ChessBoard.PieceType.PieceMask) == ChessBoard.PieceType.Pawn;
+                //bool bp = (brd.ChessBoard[bm.StartPos] & ChessBoard.PieceType.PieceMask) == ChessBoard.PieceType.Pawn;
+                //ChessBoard.PieceType enemyPawn = ChessBoard.PieceType.Pawn | (brd.ChessBoard[am.StartPos] ^ (brd.ChessBoard[am.StartPos] & ChessBoard.PieceType.PieceMask) ^ ChessBoard.PieceType.Black);
+                //bool aeaten = brd.ChessBoard.CheckIsPiece(am.StartPos + 7, enemyPawn) ||
+                //brd.ChessBoard.CheckIsPiece(am.StartPos + 9, enemyPawn) ||
+                //brd.ChessBoard.CheckIsPiece(am.StartPos - 7, enemyPawn) ||
+                //brd.ChessBoard.CheckIsPiece(am.StartPos - 9, enemyPawn);
+                //bool beaten = brd.ChessBoard.CheckIsPiece(bm.StartPos + 7, enemyPawn) ||
+                //brd.ChessBoard.CheckIsPiece(bm.StartPos + 9, enemyPawn) ||
+                //brd.ChessBoard.CheckIsPiece(bm.StartPos - 7, enemyPawn) ||
+                //brd.ChessBoard.CheckIsPiece(bm.StartPos - 9, enemyPawn);
+                //if (ap && bp)
+                //    return 0;
+                //if (ap)
+                //    return -1;
+                //if (bp)
+                //    return 1;
+                //if (aeaten && beaten)
+                //    return 0;
+                //if (aeaten)
+                //    return 1;
+                //if (beaten)
+                //    return -1;
+                ////if (brd.ChessBoard.IsCheck)
+                //return 0;
             });
 
             if (!board.IsMoveTerminal(moveListPlayerId,
                                       moveList,
                                       minMaxInfo,
-                                      isSearchHasBeenCanceled: DateTime.Now >= minMaxInfo.TimeOut || IsSearchHasBeenCanceled,
+                                      isSearchHasBeenCanceled: minMaxInfo.HasTimedOut || IsSearchHasBeenCanceled,
                                       out int retVal, 
                                       false)) {
                 retVal = maximizing ? int.MinValue : int.MaxValue;
                 
                 foreach (TMove move in moveList) {
+                    if (minMaxInfo.HasTimedOut || IsSearchHasBeenCanceled)
+                    {
+                        // Fix queen bug
+                        break;
+                    }
                     if (board.DoMoveNoLog(move)) {
                         boardExtraInfo = board.ComputeBoardExtraInfo();
                         value          = minMaxInfo.TransTable?.ProbeEntry(moveListPlayerId, board.ZobristKey, boardExtraInfo, minMaxInfo.Depth - 1) ?? int.MaxValue;
@@ -146,8 +181,7 @@ namespace GenericSearchEngine {
                             //minMaxInfo.
                             childMoveList = board.GetMoves(lastMovePlayerId, out/*AttackPosInfo _*/minMaxInfo.attackPosInfo);
                             bool wasCheck = false;
-                            if (board is ChessBoard brd)
-                                wasCheck = brd.IsCheck(ChessBoard.PlayerColor.White) || brd.IsCheck(ChessBoard.PlayerColor.Black);
+                            // wasCheck = board.IsCheck();
                             if (!wasCheck)
                                 minMaxInfo.Depth--;
                             value = AlphaBeta(lastMovePlayerId,
@@ -515,8 +549,9 @@ namespace GenericSearchEngine {
                     }
                 } else {
 #endif
-                    // Fixed Maximum Depth
-                    retVal.MaxDepth = searchEngineSetting.SearchDepth;
+                
+                // Fixed Maximum Depth
+                retVal.MaxDepth = searchEngineSetting.SearchDepth;
                     bestMoveFound   = FindBestMoveUsingAlphaBetaAtDepth(board,
                                                                         searchEngineSetting,
                                                                         transTable,
@@ -528,7 +563,8 @@ namespace GenericSearchEngine {
                                                                         totalMoveCount,
                                                                         alpha,
                                                                         beta,
-                                                                        DateTime.MaxValue,
+                                                                        (searchEngineSetting.TimeOutInSec == 0) ? DateTime.MaxValue :
+                                                              DateTime.Now + TimeSpan.FromSeconds(searchEngineSetting.TimeOutInSec),
                                                                         maximizing,
                                                                         ptsPerMove: null,
                                                                         evaluatedMoveCount: out int _,
@@ -537,13 +573,14 @@ namespace GenericSearchEngine {
 #else
                                                                         out TMove bestMove,
 #endif
-                                                                        hasTimedOut: out bool _,
+                                                                        hasTimedOut: out bool timeOut,
                                                                         out int pts,
                                                                         out int permCountAtLevel);
                     if (bestMoveFound) {
                         retVal.BestMoveFound = true;
                         retVal.BestMove      = bestMove;
                         retVal.Pts           = pts;
+                        retVal.HasTimedOut   = timeOut;
                     }
                     retVal.PermCount += permCountAtLevel;
 #if IterativeActivated

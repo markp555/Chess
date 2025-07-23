@@ -23,5 +23,7 @@
         public int PermCount { get; set; } = 0;
         /// <summary>Maximum search depth</summary>
         public int MaxDepth { get; set; } = -1;
+
+        public bool HasTimedOut { get; set; } = false;
     }
 }
