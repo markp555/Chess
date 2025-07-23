@@ -59,6 +59,23 @@ namespace SrcChess2 {
             } else {
                 radioButtonMinMax.IsChecked  = true;
             }
+            if (chessSearchSetting.SearchOption.HasFlag(SearchOption.UseHumanFactor))
+            {
+                checkBoxHumanFactor.IsChecked = true;
+            }
+            else
+            {
+                checkBoxHumanFactor.IsChecked = false;
+            }
+            if (chessSearchSetting.SearchOption.HasFlag(SearchOption.UseExtendedEvaluation))
+            {
+                checkBoxExtended.IsChecked = true;
+            }
+            else
+            {
+                checkBoxExtended.IsChecked = false;
+            }
+            textBoxTimeInSec.Text = chessSearchSetting.TimeOutInSec.ToString(CultureInfo.InvariantCulture);
             if (chessSearchSetting.SearchDepth == 0) {
                 radioButtonAvgTime.IsChecked = true;
                 textBoxTimeInSec.Text        = chessSearchSetting.TimeOutInSec.ToString(CultureInfo.InvariantCulture);
@@ -66,11 +83,12 @@ namespace SrcChess2 {
             } else {
                 if ((chessSearchSetting.SearchOption & SearchOption.UseIterativeDepthSearch) == SearchOption.UseIterativeDepthSearch) {
                     radioButtonFixDepthIterative.IsChecked = true;
-                } else {
+                    textBoxTimeInSec.Text        = chessSearchSetting.TimeOutInSec.ToString(CultureInfo.InvariantCulture);
+                } else
+                {
                     radioButtonFixDepth.IsChecked = true;
                 }
                 plyCount.Value        = chessSearchSetting.SearchDepth;
-                textBoxTimeInSec.Text = "15";
             }
             plyCount2.Content   = plyCount.Value.ToString();
             switch(chessSearchSetting.RandomMode) {
@@ -101,16 +119,26 @@ namespace SrcChess2 {
         /// Set the plyCount/avgTime control state
         /// </summary>
         private void SetPlyAvgTimeState() {
-            if (radioButtonAvgTime.IsChecked == true) {
-                plyCount.IsEnabled         = false;
+            if (radioButtonAvgTime.IsChecked == true)
+            {
+                plyCount.IsEnabled = false;
                 labelNumberOfPly.IsEnabled = false;
                 textBoxTimeInSec.IsEnabled = true;
-                labelAvgTime.IsEnabled     = true;
-            } else {
-                plyCount.IsEnabled         = true;
+                labelAvgTime.IsEnabled = true;
+            }
+            else if (radioButtonFixDepthIterative.IsChecked == true)
+            {
+                plyCount.IsEnabled = true;
                 labelNumberOfPly.IsEnabled = true;
                 textBoxTimeInSec.IsEnabled = false;
-                labelAvgTime.IsEnabled     = false;
+                labelAvgTime.IsEnabled = false;
+            }
+            else
+            {
+                plyCount.IsEnabled = true;
+                labelNumberOfPly.IsEnabled = true;
+                textBoxTimeInSec.IsEnabled = true;
+                labelAvgTime.IsEnabled = true;
             }
         }
 
@@ -127,7 +155,7 @@ namespace SrcChess2 {
         /// <param name="sender"> Sender object</param>
         /// <param name="e">      Event parameter</param>
         private void TextBoxTimeInSec_TextChanged(object sender, TextChangedEventArgs e)
-            => butOk.IsEnabled = (int.TryParse(textBoxTimeInSec.Text, out int val) && val > 0 && val < 999);
+            => butOk.IsEnabled = (int.TryParse(textBoxTimeInSec.Text, out int val) && val >= 0 && val < 999);
 
         /// <summary>
         /// Called when the transposition table size is changed
@@ -155,6 +183,14 @@ namespace SrcChess2 {
             if (checkBoxTransTable.IsChecked == true) {
                 m_chessSearchSetting.SearchOption |= SearchOption.UseTransTable;
             }
+            if (checkBoxExtended.IsChecked == true)
+            {
+                m_chessSearchSetting.SearchOption |= SearchOption.UseExtendedEvaluation;
+            }
+            if (checkBoxHumanFactor.IsChecked == true)
+            {
+                m_chessSearchSetting.SearchOption |= SearchOption.UseHumanFactor;
+            }
             if (radioButtonOnePerProc.IsChecked == true) {
                 m_chessSearchSetting.ThreadingMode = ThreadingMode.OnePerProcessorForSearch;
             } else if (radioButtonOneForUI.IsChecked == true) {
@@ -163,14 +199,16 @@ namespace SrcChess2 {
                 m_chessSearchSetting.ThreadingMode = ThreadingMode.Off;
             }
             if (radioButtonAvgTime.IsChecked == true) {
-                m_chessSearchSetting.SearchDepth  = 0;
+                m_chessSearchSetting.SearchDepth = 0;
+                m_chessSearchSetting.TimeOutInSec = int.Parse(textBoxTimeInSec.Text);
+            }
+            else if (radioButtonFixDepth.IsChecked == true)
+            {
+                m_chessSearchSetting.SearchDepth  = (int)plyCount.Value;
                 m_chessSearchSetting.TimeOutInSec = int.Parse(textBoxTimeInSec.Text);
             } else {
                 m_chessSearchSetting.SearchDepth  = (int)plyCount.Value;
                 m_chessSearchSetting.TimeOutInSec = 0;
-                if (radioButtonFixDepthIterative.IsChecked == true) {
-                    m_chessSearchSetting.SearchOption |= SearchOption.UseIterativeDepthSearch;
-                }
             }
             if (radioButtonRndOff.IsChecked == true) {
                 m_chessSearchSetting.RandomMode = RandomMode.Off;
@@ -202,6 +240,23 @@ namespace SrcChess2 {
         }
 
         private void humanFactor_TextChanged(object sender, TextChangedEventArgs e)
-            => butOk.IsEnabled = (int.TryParse(humanFactor.Text, out int val) && val > 0 && val < 100);
+            => butOk.IsEnabled = int.TryParse(humanFactor.Text, out int val) && val > -100 && val < 100;
+
+        private void checkBoxExtended_Checked(object sender, RoutedEventArgs e)
+        {
+            
+        }
+
+        private void checkBoxHumanFactor_Checked(object sender, RoutedEventArgs e)
+        {
+            if (checkBoxHumanFactor.IsChecked==true)
+            {
+                humanFactor.IsEnabled = true;
+            }
+            else
+            {
+                humanFactor.IsEnabled = false;
+            }
+        }
     } // Class FrmManualSearchMode
 } // Namespace

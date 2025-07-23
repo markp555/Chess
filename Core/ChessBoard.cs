@@ -1415,6 +1415,119 @@ namespace SrcChess2.Core {
         public bool IsCheck(PlayerColor playerColor) => IsCheck(playerColor, (playerColor == PlayerColor.Black) ? m_blackKingPos : m_whiteKingPos);
 
         /// <summary>
+        /// Provides extended position evaluation using alpha beta algorithm
+        /// </summary>
+        /// <param name="maximizing">true if we are currently playing as white and maximizing the result</param>
+        /// <param name="alpha">Alpha for search algorithm</param>
+        /// <param name="beta">Beta for search algorithm</param>
+        /// <param name="evaluater">Function to evaluate current position</param>
+        /// <returns></returns>
+        public int PointsEx(bool maximizing, int alpha, int beta, Func<AttackPosInfo, int> evaluater)
+        {
+            List<Move> moveList;
+            moveList = EnumMoveList(maximizing ? PlayerColor.White : PlayerColor.Black, true, out AttackPosInfo posInfo) ?? [];
+
+            static int PiecesCost(PieceType piece)
+            {
+                return (piece & PieceType.PieceMask) switch
+                {
+                    PieceType.Pawn => 1,
+                    PieceType.Knight => 3,
+                    PieceType.Bishop => 3,
+                    PieceType.Rook => 5,
+                    PieceType.Queen => 9,
+                    PieceType.King => 100,
+                    _ => 0
+                };
+            }
+
+            moveList.Sort((Move am, Move bm) => {
+                if (am.OriginalPiece == ChessBoard.PieceType.None && bm.OriginalPiece != ChessBoard.PieceType.None)
+                {
+                    return 1;
+                }
+                if (am.OriginalPiece != ChessBoard.PieceType.None && bm.OriginalPiece == ChessBoard.PieceType.None)
+                {
+                    return -1;
+                }
+                return PiecesCost(bm.OriginalPiece) - PiecesCost(am.OriginalPiece);
+            });
+
+            // Checkmate
+            if (moveList.Count == 0 && IsCheck(CurrentPlayer))
+            {
+                return CurrentPlayer == PlayerColor.White ? -1000000 : 1000000;
+            }
+
+            // Draw
+            if (moveList.Count == 0)
+            {
+                return 0;
+            }
+
+            // Draw by insufficient material
+            if (!IsEnoughPieceForCheckMate())
+            {
+                return 0;
+            }
+
+            int retVal = maximizing ? int.MinValue : int.MaxValue;
+            bool PushResult(int value)
+            {
+                if (maximizing)
+                {
+                    if (value > retVal)
+                    {
+                        retVal = value;
+                        if (retVal >= beta)
+                        {
+                            return true;
+                        }
+                        alpha = Math.Max(alpha, retVal);
+                    }
+                }
+                else
+                {
+                    if (value < retVal)
+                    {
+                        retVal = value;
+                        if (value <= alpha)
+                        {
+                            return true;
+                        }
+                        beta = Math.Min(beta, retVal);
+                    }
+                }
+                return false;
+            }
+
+            if (PushResult(evaluater(posInfo)))
+            {
+                return retVal;
+            }
+
+            foreach (Move move in moveList)
+            {
+                if (move.OriginalPiece == PieceType.None)
+                {
+                    break;
+                }
+                int val = 0;
+                if (DoMoveNoLog(move) == RepeatResult.NoRepeat)
+                {
+                    val = PointsEx(!maximizing, alpha, beta, evaluater);
+                }
+                UndoMoveNoLog(move);
+                if (PushResult(val))
+                {
+                    return retVal;
+                }
+            }
+
+            return retVal;
+        }
+
+        /// <summary>
         /// Evaluates a board. The number of point is greater than 0 if white is in advantage, less than 0 if black is.
         /// </summary>
         /// <param name="searchEngineSetting"> Search engine setting</param>
@@ -1431,20 +1544,46 @@ namespace SrcChess2.Core {
                                     AttackPosInfo whiteAttackPosInfo,
                                     AttackPosInfo blackAttackPosInfo) where TSetting : SearchEngineSetting {
             int              retVal;
-            IBoardEvaluation boardEval;
             AttackPosInfo    tAttackPosInfo = AttackPosInfo.NullAttackPosInfo;
 
             if (searchEngineSetting is ChessSearchSetting chessSearchSetting) {
                 //EnumMoveList(playerColor, false, out tAttackPosInfo);
-                if (playerColor == PlayerColor.White) {
-                    boardEval      = chessSearchSetting.WhiteBoardEvaluator;
-                    tAttackPosInfo = whiteAttackPosInfo;
-                } else {
-                    boardEval                      = chessSearchSetting.BlackBoardEvaluator;
-                    tAttackPosInfo.PiecesAttacked  = -blackAttackPosInfo.PiecesAttacked;
-                    tAttackPosInfo.PiecesDefending = -blackAttackPosInfo.PiecesDefending;
+                
+                if (searchEngineSetting.SearchOption.HasFlag(GenericSearchEngine.SearchOption.UseExtendedEvaluation))
+                {
+                    retVal = PointsEx(playerColor == PlayerColor.White, -10000000, 10000000, (AttackPosInfo info) =>
+                    {
+                        IBoardEvaluation boardEval;
+                        if (playerColor == PlayerColor.White)
+                        {
+                            boardEval = chessSearchSetting.WhiteBoardEvaluator;
+                        }
+                        else
+                        {
+                            boardEval = chessSearchSetting.BlackBoardEvaluator;
+                            info.PiecesAttacked = -info.PiecesAttacked;
+                            info.PiecesDefending = -info.PiecesDefending;
+                        }
+                        return boardEval.Points(m_board, m_pieceTypeCount, tAttackPosInfo, m_whiteKingPos, m_blackKingPos, m_isWhiteCastled, m_isBlackCastled, moveCountDelta);
+                    });
                 }
-                retVal = boardEval.Points(m_board, m_pieceTypeCount, tAttackPosInfo, m_whiteKingPos, m_blackKingPos, m_isWhiteCastled, m_isBlackCastled, moveCountDelta);
+                else
+                {
+                    IBoardEvaluation boardEval;
+                    if (playerColor == PlayerColor.White)
+                    {
+                        boardEval = chessSearchSetting.WhiteBoardEvaluator;
+                        tAttackPosInfo = whiteAttackPosInfo;
+                    }
+                    else
+                    {
+                        boardEval = chessSearchSetting.BlackBoardEvaluator;
+                        tAttackPosInfo = blackAttackPosInfo;
+                        tAttackPosInfo.PiecesAttacked = -blackAttackPosInfo.PiecesAttacked;
+                        tAttackPosInfo.PiecesDefending = -blackAttackPosInfo.PiecesDefending;
+                    }
+                    retVal = boardEval.Points(m_board, m_pieceTypeCount, tAttackPosInfo, m_whiteKingPos, m_blackKingPos, m_isWhiteCastled, m_isBlackCastled, moveCountDelta);
+                }
             } else {
                 throw new InvalidProgramException("Coding error");
             }
@@ -2004,6 +2143,87 @@ namespace SrcChess2.Core {
             while (MovePosStack.PositionInList != -1) {
                 UndoMove();
             }
+        }
+
+        public int[] CalculateAttackMap()
+        {
+            int[] res = new int[64];
+            for (int i = 0; i < 64; i++)
+            {
+                res[i] = 0;
+            }
+            void EnumerateMoves(int[] arr, int what, UInt16 allowed_mask)
+            {
+                foreach (var item in arr)
+                {
+                    res[item] += what;
+                    PieceType piece = m_board[item];
+                    if ((allowed_mask & (1 << (int)piece)) == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+            void EnumerateMovesEx(int[][] arr, int what, UInt16 allowed_mask)
+            {
+                foreach (var item in arr)
+                {
+                    EnumerateMoves(item, what, allowed_mask);
+                }
+            }
+            ushort MaskFromFigures(params PieceType[] pieces)
+            {
+                ushort res = 0;
+                foreach (PieceType piece in pieces)
+                {
+                    res |= (ushort)(1 << (ushort)piece);
+                }
+                return res;
+            }
+            for (int i = 0; i < 64; i++)
+            {
+                if (m_board[i] == PieceType.None)
+                {
+                    continue;
+                }
+                //res[i] -= EnumAttackPos(CurrentPlayer, i, null);
+                //res[i] += EnumAttackPos(LastMovePlayer, i, null);
+                int val = m_board[i].HasFlag(PieceType.Black) == (CurrentPlayer == PlayerColor.Black) ? 1 : -1;
+                PieceType piece = m_board[i];
+                piece &= PieceType.PieceMask;
+                PieceType clr = m_board[i] ^ piece;
+                if (piece == PieceType.Bishop || piece == PieceType.Queen)
+                {
+                    EnumerateMovesEx(s_caseMoveDiagonal[i], val, MaskFromFigures(
+                        PieceType.Bishop | clr,
+                        PieceType.Queen | clr,
+                        PieceType.Pawn | clr,
+                        PieceType.None));
+                }
+                if (piece == PieceType.Rook || piece == PieceType.Queen)
+                {
+                    EnumerateMovesEx(s_caseMoveLine[i], val, MaskFromFigures(
+                        PieceType.Queen | clr,
+                        PieceType.Rook | clr,
+                        PieceType.None));
+                }
+                if (piece == PieceType.Knight)
+                {
+                    EnumerateMoves(s_caseMoveKnight[i], val, ushort.MaxValue);
+                }
+                if (piece == PieceType.King)
+                {
+                    EnumerateMoves(s_caseMoveKing[i], val, ushort.MaxValue);
+                }
+                if (piece == PieceType.Pawn)
+                {
+                    EnumerateMoves(m_board[i].HasFlag(PieceType.Black) ?
+                        s_caseWhitePawnCanAttackFrom[i] :
+                        s_caseBlackPawnCanAttackFrom[i], 
+                        val, ushort.MaxValue);
+                }
+            }
+            return res;
         }
 
     } // Class ChessBoard

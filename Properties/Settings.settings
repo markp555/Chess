@@ -12,10 +12,10 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="UseThread" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">2</Value>
+      <Value Profile="(Default)">1</Value>
     </Setting>
     <Setting Name="TransTableSize" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">992</Value>
+      <Value Profile="(Default)">64</Value>
     </Setting>
     <Setting Name="UseAlphaBeta" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
@@ -138,6 +138,9 @@
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="ChessHumanFactor" Type="System.Int64" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="SearchOptions" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>

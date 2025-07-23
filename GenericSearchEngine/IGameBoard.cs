@@ -146,5 +146,9 @@ namespace GenericSearchEngine {
 #endif
 
         public bool IsMoveValid(TMove move);
+
+        public int[] CalculateAttackMap();
+
+        public bool IsCheck();
     }
 }

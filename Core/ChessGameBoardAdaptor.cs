@@ -250,5 +250,9 @@ namespace SrcChess2.Core {
         {
             return m_chessBoard.IsMoveValid(move);
         }
+
+        int[] IGameBoard<Move>.CalculateAttackMap() => m_chessBoard.CalculateAttackMap();
+
+        bool IGameBoard<Move>.IsCheck() => m_chessBoard.IsCheck(ChessBoard.PlayerColor.White) || m_chessBoard.IsCheck(ChessBoard.PlayerColor.Black);
     }
 }

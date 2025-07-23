@@ -173,11 +173,12 @@ namespace SrcChess2 {
                                     ChessSearchSetting.BookModeSetting.NoBook or ChessSearchSetting.BookModeSetting.Unrated => (ChessSearchSetting.BookModeSetting)Settings.BookType,
                                     _                                                                                       => ChessSearchSetting.BookModeSetting.ELOGT2500
                                 };
+            searchOption |= (SearchOption)Settings.SearchOptions;
             humanFactor = (int)Settings.ChessHumanFactor;
             whiteBoardEvaluation = boardEvalUtil.FindBoardEvaluator(Settings.WhiteBoardEval) ?? boardEvalUtil.BoardEvaluators[0];
             blackBoardEvaluation = boardEvalUtil.FindBoardEvaluator(Settings.BlackBoardEval) ?? boardEvalUtil.BoardEvaluators[0];
             searchDepth          = Settings.UsePlyCount | Settings.UsePlyCountIterative ? ((Settings.PlyCount > 1 && Settings.PlyCount < 12) ? Settings.PlyCount : 6) : 0;
-            timeOutInSec         = Settings.UsePlyCount | Settings.UsePlyCountIterative ? 0 : (Settings.AverageTime > 0 && Settings.AverageTime < 1000) ? Settings.AverageTime : 15;
+            timeOutInSec         = (Settings.AverageTime > 0 && Settings.AverageTime < 1000) ? Settings.AverageTime : 0;
             randomMode           = (Settings.RandomMode >= 0 && Settings.RandomMode <= 2) ? (RandomMode)Settings.RandomMode : RandomMode.On;
             searchEngineSetting  = new SearchEngineSetting(searchOption, threadingMode, searchDepth, timeOutInSec, randomMode, transTableEntryCount, humanFactor);
             chessSearchSetting   = new ChessSearchSetting(searchEngineSetting, whiteBoardEvaluation, blackBoardEvaluation, bookMode, difficultyLevel);
@@ -204,6 +205,7 @@ namespace SrcChess2 {
             Settings.WhiteBoardEval       = chessSearchSetting.WhiteBoardEvaluator?.Name ?? "???";
             Settings.BlackBoardEval       = chessSearchSetting.BlackBoardEvaluator?.Name ?? "???";
             Settings.ChessHumanFactor     = chessSearchSetting.HumanFactor;
+            Settings.SearchOptions        = (int)chessSearchSetting.SearchOption;
         }
 
         /// <summary>

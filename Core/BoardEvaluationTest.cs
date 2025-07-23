@@ -95,6 +95,22 @@ namespace SrcChess2.Core {
             retVal += moveCountDelta;
             //retVal += attackPosInfo.PiecesAttacked * 3;
             //retVal += attackPosInfo.PiecesDefending * 2;
+            void CheckFigure(int pos)
+            {
+                ChessBoard.PieceType piece = board[pos] & ChessBoard.PieceType.PieceMask;
+                if (piece == ChessBoard.PieceType.Bishop || piece == ChessBoard.PieceType.Knight)
+                {
+                    if (board[pos].HasFlag(ChessBoard.PieceType.Black))
+                        retVal += 47;
+                    else
+                        retVal -= 47;
+                }
+            }
+            for (int i = 0; i < 8; i++)
+            {
+                CheckFigure(i);
+                CheckFigure(56 + i);
+            }
 
             if (attackPosInfo.WhiteCheck)
                 retVal -= 15;
