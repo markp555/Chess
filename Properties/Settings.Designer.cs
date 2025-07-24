@@ -25,7 +25,7 @@ namespace SrcChess2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("6")]
+        [global::System.Configuration.DefaultSettingValueAttribute("4")]
         public int PlyCount {
             get {
                 return ((int)(this["PlyCount"]));
@@ -577,7 +577,7 @@ namespace SrcChess2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("32")]
         public int SearchOptions {
             get {
                 return ((int)(this["SearchOptions"]));

@@ -1,0 +1,17 @@
+﻿[Event "SrcChess Game"]
+[Site "SrcChess Location"]
+[Date "2025.07.23"]
+[Round "1"]
+[White "Player 1"]
+[Black "Player 2"]
+[Result "0-1"]
+[SetUp "1"]
+[FEN "2bq1rk1/p4pp1/5n1p/1pb1B3/3p4/3P4/PPPQPPPP/R2K1B1R w - - 0 1"]
+[WhiteType "program"]
+[BlackType "human"]
+[TimeControl "?:311010276:1483473122"]
+
+1. f4 Ng4 2. b4 Bb6 3. Kc1 f6 4. Bb8 Bf5 5. Bxa7 Bxa7 6. Kb1 
+Qd7 7. Qc1 Ne3 8. Qb2 Rc8 9. Qb3+ Be6 10. c4 dxc3 11. Qa3 c2+ 
+12. Kc1 Qd4 13. Qb2 Qxb2+ 14. Kxb2 Nd1+ 15. Rxd1 cxd1=Q 16. e4 
+Qc1# 0-1  0-1

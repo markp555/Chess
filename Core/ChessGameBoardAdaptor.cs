@@ -254,5 +254,7 @@ namespace SrcChess2.Core {
         int[] IGameBoard<Move>.CalculateAttackMap() => m_chessBoard.CalculateAttackMap();
 
         bool IGameBoard<Move>.IsCheck() => m_chessBoard.IsCheck(ChessBoard.PlayerColor.White) || m_chessBoard.IsCheck(ChessBoard.PlayerColor.Black);
+
+        int[] IGameBoard<Move>.CalculateAttackMap(out int[] minAttack) => m_chessBoard.CalculateAttackMapEx(out minAttack);
     }
 }

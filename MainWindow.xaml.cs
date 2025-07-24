@@ -110,6 +110,10 @@ namespace SrcChess2 {
         public static readonly RoutedUICommand      CancelPlayCommand          = new("_Cancel Play",                   "CancelPlay",           typeof(MainWindow));
         /// <summary>Command: Design Mode</summary>
         public static readonly RoutedUICommand      DesignModeCommand          = new("_Design Mode",                   "DesignMode",           typeof(MainWindow));
+        /// <summary>
+        /// Set castling metadata of the board
+        /// </summary>
+        public static readonly RoutedUICommand      SetMetadataCommand          = new("_Set Metadata",                 "Set Metadata",         typeof(MainWindow));
 
         /// <summary>Command: Search Mode</summary>
         public static readonly RoutedUICommand      ManualSearchSettingCommand = new("_Manual Search Setting...",      "ManualSearchSetting",  typeof(MainWindow));
@@ -161,7 +165,8 @@ namespace SrcChess2 {
                                                                       CreateBookCommand,
                                                                       FilterPgnFileCommand,
                                                                       TestBoardEvaluationCommand,
-                                                                      AboutCommand ];
+                                                                      AboutCommand,
+                                                                      SetMetadataCommand];
         #endregion
 
         #region Members        
@@ -382,9 +387,17 @@ namespace SrcChess2 {
                 TestBoardEvaluation();
             } else if (e.Command == AboutCommand) {
                 ShowAbout();
+            } else if (e.Command == SetMetadataCommand) {
+                ShowMetadataSettings();
             } else {
                 e.Handled   = false;
             }
+        }
+
+        private void ShowMetadataSettings()
+        {
+            SetMetadataDialog dlg = new(m_chessCtl.ChessBoard);
+            _ = dlg.ShowDialog();
         }
 
         /// <summary>
@@ -427,7 +440,8 @@ namespace SrcChess2 {
                        e.Command == PgnNotationCommand         ||
                        e.Command == BoardSettingCommand        ||
                        e.Command == TestBoardEvaluationCommand ||
-                       e.Command == AboutCommand) {
+                       e.Command == AboutCommand ||
+                       e.Command == SetMetadataCommand) {
                 e.CanExecute = !(isSearchEngineBusy || isBusy || isObservingGame);
             } else if (e.Command == CancelPlayCommand) {
                 e.CanExecute = isSearchEngineBusy | isBusy | isObservingGame;

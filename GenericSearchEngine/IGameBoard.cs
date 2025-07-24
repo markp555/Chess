@@ -149,6 +149,8 @@ namespace GenericSearchEngine {
 
         public int[] CalculateAttackMap();
 
+        public int[] CalculateAttackMap(out int[] minAttack);
+
         public bool IsCheck();
     }
 }

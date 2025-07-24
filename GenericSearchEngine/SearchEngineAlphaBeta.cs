@@ -85,28 +85,50 @@ namespace GenericSearchEngine {
             minMaxInfo.HasTimedOut = DateTime.Now >= minMaxInfo.TimeOut;
             isFullyEvaluated       = true;
 
-            int[] eatBalance = board.CalculateAttackMap();
+            int[] eatBalance = board.CalculateAttackMap(out int[] minAttack);
 
             moveList.Sort((TMove a, TMove b) => {
                 if (a is not Move am || b is not Move bm || board is not ChessGameBoardAdaptor brd || PiecesPoint == null)
                     return 0;
+                int ap = (int)brd.ChessBoard[am.StartPos];
+                int bp = (int)brd.ChessBoard[bm.StartPos];
                 int w1 = am.OriginalPiece == ChessBoard.PieceType.None ? 0 : PiecesPoint[(int)am.OriginalPiece];
                 int w2 = bm.OriginalPiece == ChessBoard.PieceType.None ? 0 : PiecesPoint[(int)bm.OriginalPiece];
                 if (eatBalance[am.StartPos] < 0) // this piece can be eaten
                 {
-                    w2 -= PiecesPoint[(int)brd.ChessBoard[am.StartPos]];
+                    w2 -= PiecesPoint[ap];
+                }
+                else if (minAttack[am.StartPos] < ap)
+                {
+                    w2 -= PiecesPoint[ap];
+                    w2 += PiecesPoint[minAttack[am.StartPos]];
                 }
                 if (eatBalance[bm.StartPos] < 0)
                 {
-                    w1 -= PiecesPoint[(int)brd.ChessBoard[bm.StartPos]];
+                    w1 -= PiecesPoint[bp];
+                }
+                else if (minAttack[bm.StartPos] < bp)
+                {
+                    w1 -= PiecesPoint[bp];
+                    w1 += PiecesPoint[minAttack[bm.StartPos]];
                 }
                 if (eatBalance[am.EndPos] <= 0)
                 {
-                    w1 -= PiecesPoint[(int)brd.ChessBoard[am.StartPos]];
+                    w1 -= PiecesPoint[ap];
+                }
+                else if (minAttack[am.StartPos] < ap)
+                {
+                    w1 -= PiecesPoint[ap];
+                    w1 += PiecesPoint[minAttack[am.StartPos]];
                 }
                 if (eatBalance[bm.EndPos] <= 0)
                 {
-                    w2 -= PiecesPoint[(int)brd.ChessBoard[bm.StartPos]];
+                    w2 -= PiecesPoint[bp];
+                }
+                else if (minAttack[bm.StartPos] < bp)
+                {
+                    w2 -= PiecesPoint[bp];
+                    w2 += PiecesPoint[minAttack[bm.StartPos]];
                 }
                 // if it is better to make second move (by take)
                 if (w1 != w2)
@@ -213,6 +235,7 @@ namespace GenericSearchEngine {
                     if (ptsPerMove != null) {
                         ptsPerMove[evaluatedMoveCount] = value;
                     }
+                    
                     if (maximizing) {
                         if (value > retVal) {
                             retVal      = value;
