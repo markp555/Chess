@@ -26,7 +26,7 @@ namespace SrcChess2 {
         /// <summary>
         /// Program version
         /// </summary>
-        public static string Version => "Version 3.34.0";
+        public static string Version => "Version 3.35.2";
         
         /// <summary>
         /// .Net Version

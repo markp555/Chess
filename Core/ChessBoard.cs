@@ -215,6 +215,78 @@ namespace SrcChess2.Core {
         private Book?                          m_book;
         /// <summary>Object where to redirect the trace if any</summary>
         private ISearchTrace<Move>?            m_trace;
+        /// <summary>
+        /// TransTable for extended evaluation
+        /// </summary>
+        private TransTable                     m_evalutaionTransTable;
+
+        public bool CanBlackMakeRightCastle
+        {
+            get => m_blackKingMoveCount == 0 && m_rightBlackRookMoveCount == 0;
+            set
+            {
+                if (value)
+                {
+                    m_rightBlackRookMoveCount = 0;
+                    m_blackKingMoveCount = 0;
+                }
+                else
+                {
+                    m_rightBlackRookMoveCount = 1;
+                }
+            }
+        }
+
+        public bool CanBlackMakeLeftCastle
+        {
+            get => m_blackKingMoveCount == 0 && m_leftBlackRookMoveCount == 0;
+            set
+            {
+                if (value)
+                {
+                    m_leftBlackRookMoveCount = 0;
+                    m_blackKingMoveCount = 0;
+                }
+                else
+                {
+                    m_leftBlackRookMoveCount = 1;
+                }
+            }
+        }
+
+        public bool CanWhiteMakeLeftCastle
+        {
+            get => m_whiteKingMoveCount == 0 && m_leftWhiteRookMoveCount == 0;
+            set
+            {
+                if (value)
+                {
+                    m_leftWhiteRookMoveCount = 0;
+                    m_whiteKingMoveCount = 0;
+                }
+                else
+                {
+                    m_leftWhiteRookMoveCount = 1;
+                }
+            }
+        }
+
+        public bool CanWhiteMakeRightCastle
+        {
+            get => m_whiteKingMoveCount == 0 && m_rightWhiteRookMoveCount == 0;
+            set
+            {
+                if (value)
+                {
+                    m_rightWhiteRookMoveCount = 0;
+                    m_whiteKingMoveCount = 0;
+                }
+                else
+                {
+                    m_rightWhiteRookMoveCount = 1;
+                }
+            }
+        }
 
         /// <summary>
         /// Class static constructor. 
@@ -321,6 +393,7 @@ namespace SrcChess2.Core {
             IsDesignMode                 = false;
             MovePosStack                 = new MovePosStack();
             m_boardAdaptor               = new ChessGameBoardAdaptor(this, dispatcher);
+            m_evalutaionTransTable       = new TransTable(20000, true);
             ResetBoard();
         }
 
@@ -1506,6 +1579,15 @@ namespace SrcChess2.Core {
                 return retVal;
             }
 
+            //int tmp = m_evalutaionTransTable.ProbeEntry(maximizing ? 1 : 0, ZobristKey, (int)ComputeBoardExtraInfo(false), 0);
+            //if (tmp != int.MaxValue)
+            //{
+            //    if (PushResult(tmp))
+            //    {
+            //        return retVal;
+            //    }
+            //}
+
             foreach (Move move in moveList)
             {
                 if (move.OriginalPiece == PieceType.None)
@@ -1520,10 +1602,10 @@ namespace SrcChess2.Core {
                 UndoMoveNoLog(move);
                 if (PushResult(val))
                 {
-                    return retVal;
+                    break;
                 }
             }
-
+            // m_evalutaionTransTable.RecordEntry(maximizing ? 1 : 0, ZobristKey, (int)ComputeBoardExtraInfo(false), retVal, 0);
             return retVal;
         }
 
@@ -2152,13 +2234,14 @@ namespace SrcChess2.Core {
             {
                 res[i] = 0;
             }
+            
             void EnumerateMoves(int[] arr, int what, UInt16 allowed_mask)
             {
                 foreach (var item in arr)
                 {
                     res[item] += what;
-                    PieceType piece = m_board[item];
-                    if ((allowed_mask & (1 << (int)piece)) == 0)
+                    PieceType cur_piece = m_board[item];
+                    if ((allowed_mask & (1 << (int)cur_piece)) == 0)
                     {
                         break;
                     }
@@ -2226,6 +2309,105 @@ namespace SrcChess2.Core {
             return res;
         }
 
+        public int[] CalculateAttackMapEx(out int[] minAttack)
+        {
+            int[] res = new int[64];
+            for (int i = 0; i < 64; i++)
+            {
+                res[i] = 0;
+            }
+            int[] min = new int[64];
+            for (int i = 0; i < 64; i++)
+            {
+                min[i] = (int)PieceType.King;
+            }
+            PieceType piece;
+            void EnumerateMoves(int[] arr, int what, UInt16 allowed_mask)
+            {
+                bool canUpdate = true;
+                foreach (var item in arr)
+                {
+                    res[item] += what;
+                    if (canUpdate)
+                    {
+                        if (min[item] > (int)piece)
+                        {
+                            min[item] = (int)piece;
+                        }
+                    }
+                    PieceType cur_piece = m_board[item];
+                    if ((allowed_mask & (1 << (int)cur_piece)) == 0)
+                    {
+                        break;
+                    }
+                    if (cur_piece != PieceType.None)
+                    {
+                        canUpdate = false;
+                    }
+                }
+            }
+            void EnumerateMovesEx(int[][] arr, int what, UInt16 allowed_mask)
+            {
+                foreach (var item in arr)
+                {
+                    EnumerateMoves(item, what, allowed_mask);
+                }
+            }
+            ushort MaskFromFigures(params PieceType[] pieces)
+            {
+                ushort res = 0;
+                foreach (PieceType piece in pieces)
+                {
+                    res |= (ushort)(1 << (ushort)piece);
+                }
+                return res;
+            }
+            for (int i = 0; i < 64; i++)
+            {
+                if (m_board[i] == PieceType.None)
+                {
+                    continue;
+                }
+                //res[i] -= EnumAttackPos(CurrentPlayer, i, null);
+                //res[i] += EnumAttackPos(LastMovePlayer, i, null);
+                int val = m_board[i].HasFlag(PieceType.Black) == (CurrentPlayer == PlayerColor.Black) ? 1 : -1;
+                piece = m_board[i];
+                piece &= PieceType.PieceMask;
+                PieceType clr = m_board[i] ^ piece;
+                if (piece == PieceType.Bishop || piece == PieceType.Queen)
+                {
+                    EnumerateMovesEx(s_caseMoveDiagonal[i], val, MaskFromFigures(
+                        PieceType.Bishop | clr,
+                        PieceType.Queen | clr,
+                        PieceType.Pawn | clr,
+                        PieceType.None));
+                }
+                if (piece == PieceType.Rook || piece == PieceType.Queen)
+                {
+                    EnumerateMovesEx(s_caseMoveLine[i], val, MaskFromFigures(
+                        PieceType.Queen | clr,
+                        PieceType.Rook | clr,
+                        PieceType.None));
+                }
+                if (piece == PieceType.Knight)
+                {
+                    EnumerateMoves(s_caseMoveKnight[i], val, ushort.MaxValue);
+                }
+                if (piece == PieceType.King)
+                {
+                    EnumerateMoves(s_caseMoveKing[i], val, ushort.MaxValue);
+                }
+                if (piece == PieceType.Pawn)
+                {
+                    EnumerateMoves(m_board[i].HasFlag(PieceType.Black) ?
+                        s_caseWhitePawnCanAttackFrom[i] :
+                        s_caseBlackPawnCanAttackFrom[i],
+                        val, ushort.MaxValue);
+                }
+            }
+            minAttack = min;
+            return res;
+        }
     } // Class ChessBoard
 
     /// <summary>Chess exception</summary>

@@ -1,0 +1,32 @@
+﻿<Window x:Class="SrcChess2.SetMetadataDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SrcChess2"
+        mc:Ignorable="d"
+        Title="Set metadata" Height="171" Width="351">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="25"/>
+        </Grid.RowDefinitions>
+        <UniformGrid Rows="1" Columns="2">
+        <GroupBox Header="White" HorizontalAlignment="Stretch" Margin="10" Name="groupBox1" VerticalAlignment="Stretch">
+                <StackPanel Orientation="Vertical">
+                <CheckBox Content="Right" Height="16" Name="checkBoxWhiteLeft" Margin="10,5,5,5" ToolTip="O-O" />
+                <CheckBox Content="Left" Height="16" Name="checkBoxWhiteRight" Margin="10,5,5,5" ToolTip="O-O-O" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox Header="Black" HorizontalAlignment="Stretch" Margin="10" Name="groupBox2" VerticalAlignment="Stretch">
+                <StackPanel Orientation="Vertical">
+                    <CheckBox Content="Right" Height="16" Name="checkBoxBlackLeft" Margin="10,5,5,5" ToolTip="O-O" />
+                    <CheckBox Content="Left" Height="16" Name="checkBoxBlackRight" Margin="10,5,5,5" ToolTip="O-O-O" />
+                </StackPanel>
+            </GroupBox>
+        </UniformGrid>
+        <Button Grid.Row="1" Name="btnOk" Click="btnOk_Click">
+            OK
+        </Button>
+    </Grid>
+</Window>

@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="PlyCount" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">6</Value>
+      <Value Profile="(Default)">4</Value>
     </Setting>
     <Setting Name="UseBook" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
@@ -141,7 +141,7 @@
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="SearchOptions" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
+      <Value Profile="(Default)">32</Value>
     </Setting>
   </Settings>
 </SettingsFile>
