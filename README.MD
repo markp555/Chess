@@ -12,8 +12,6 @@ For harder mode I recommend to use "Pawn-Attack version" or "Enhansed version" a
 
 - Multiplayer using FICS
 
-- Multiplayer using IRC
-
 - Fix transposition table bug
 
 - Port on Android using MAUI
