@@ -10,12 +10,12 @@ For harder mode I recommend to use "Pawn-Attack version" or "Enhansed version" a
 
 # TODO:
 
-- Multiplayer using FICS
+- Multiplayer using FICS (no progress)
 
-- Fix transposition table bug
+- Fix transposition table bug (in progress)
 
-- Port on Android using MAUI
+- Port on Android using MAUI (no progress)
 
-- Improve evaluater (because now computer dont deploy his pieces)
+- Improve evaluater (because now computer dont deploy his pieces) (in progress)
 
-- Show/hide move list button for bigger place for chess board
+- Show/hide move list button for bigger place for chess board (no progress)
